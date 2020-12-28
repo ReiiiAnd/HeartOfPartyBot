@@ -7,7 +7,7 @@ const bot = new TelegramBot(token, {polling: true});
 
 function PatterningString(str){
 	str = str.replace('...', 'autor')
-	str = str.replace(/\s{0,}:\s{0,}/, ':')
+	str = str.replace(/\s{0,}:\s{0,}/, '@')
 	str = str.replace(/\s+/g, '_')
 	str = str.toUpperCase()
 	return str
