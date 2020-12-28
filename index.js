@@ -5,26 +5,29 @@ var token = '1422948086:AAGOfViDOu7ooXR0d09wYUhb--nFKJWwG4M';
 var flag = false
 const bot = new TelegramBot(token, {polling: true});
 
+function PatterningString(str){
+	str = str.replace('...', 'autor')
+	str = str.replace(/\s{0,}:\s{0,}/, ':')
+	str = str.replace(/\s+/g, '_')
+	str = str.toUpperCase()
+	return str
+}
+
 function AddNodeToFile(nameOfFile, str, user_id){
-	var record = '\n' + user_id + ' : ' + str
+	var record = '\n' + user_id + ' # ' + str
 	Stream.appendFileSync(nameOfFile, record)
 }
 
 function SearchContent(nameOfFile, pattern){
-	var output
-	Stream.readFile(nameOfFile, 'utf8', (err, data)=> {
-		if(err) throw err
+	var output = Stream.readFileSync(nameOfFile)
 
-		output = data;
-	})
-
-	var rez = output.match(pattern)
-	return rez[0]
+	var rez = output.toString().match(pattern)
+	return rez
 }
 
 function FileContent(nameOfFile){
 	var output
-	Stream.readFile(nameOfFile, 'utf8', (err, data)=> {
+	Stream.readFile(nameOfFile, (err, data)=> {
 		if(err) throw err
 
 		output = data;
@@ -34,14 +37,15 @@ function FileContent(nameOfFile){
 }
 
 function ExpectMatch(str, user_id){
-	var pattern = new RegExp("[a-zA-Z0-9' _]-[a-zA-Z0-9' _]")
+	var pattern = new RegExp("[A-Za-z0-9_\'. ]:[A-Za-z0-9_\'. ]")
     if(str.search(pattern) != -1){
+	str = PatterningString(str)
     	var fileName = "music_list.txt"
-    	var heard = SearchContent(fileName, pattern)
+    	var heard = SearchContent(fileName, str)
     	if(heard){
     		return 'yes I know this song'
     	}
-		AddNodeToFile(fileName, str , user_id)
+	AddNodeToFile(fileName, str , user_id)
         return 'nice!'
     }
     return 'sorry.. but I can\'t understand you((('
@@ -57,13 +61,18 @@ bot.onText(/\/start/, (msg) => {
 bot.onText(/\/help/, (msg) => {
 	flag = true
 	const chatId = msg.from.id
-	bot.sendMessage(chatId, 'Yaa! send me a title of your favorite song!\n like this:\n\/send Lynyrd Skynyrd - Sweet Home Alabama')
+	bot.sendMessage(chatId, 'Yaa! send me a title of your favorite song!\n like this:\n\/send Lynyrd Skynyrd : Sweet Home Alabama')
 });
 
 bot.onText(/\/list/, (msg) => {
 	flag = true
 	const chatId = msg.from.id
-	var answer = FileContent("music_list.txt")
+try{
+	var answer = Stream.readFileSync('music_list.txt')
+}
+catch(e){
+	bot.sendMessage(chatId, 'error')
+}
 	bot.sendMessage(chatId, answer)
 })
 
